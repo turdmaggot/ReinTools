@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using MiscTools.Objects;
 using Newtonsoft.Json;
 
@@ -44,7 +46,7 @@ namespace MiscTools
         {
             string path = System.Reflection.Assembly.GetExecutingAssembly().Location;
             var directory = System.IO.Path.GetDirectoryName(path);
-
+            var fullpath = directory + "/log.txt";
 
             string message = "The quick brown fox jumps over the lazy dog.";
             var logEvent = new LogEvent(-100, LogSeverity.Info, message);
@@ -61,7 +63,7 @@ namespace MiscTools
                 string jsonLine = JsonConvert.SerializeObject(record) + ", ";
 
                 if (!string.IsNullOrEmpty(jsonLine))
-                    WriteToFile(jsonLine, path, i);
+                    WriteToFile(jsonLine, fullpath, i);
             }
 
             Console.WriteLine("Done writing to file.");
@@ -72,9 +74,17 @@ namespace MiscTools
         {
             Console.WriteLine("Writing object with index: " + index.ToString() + " to file.");
 
-            //TODO: Write/append to actual file.
+            if (index == 0 && File.Exists(path))
+                File.Delete(path);
 
-
+            using (var fileStream = File.Open(path, FileMode.Append, FileAccess.Write))
+            {
+                using (var binaryWriter = new BinaryWriter(fileStream))
+                {
+                    binaryWriter.Write(content.ToArray());
+                    binaryWriter.Flush();
+                }
+            }
         }
     }
 }
