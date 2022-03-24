@@ -1,5 +1,6 @@
 ﻿using System;
 using MiscTools.Objects;
+using Newtonsoft.Json;
 
 namespace MiscTools
 {
@@ -41,6 +42,38 @@ namespace MiscTools
 
         private static void GenerateLogFile()
         {
+            string path = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var directory = System.IO.Path.GetDirectoryName(path);
+
+
+            string message = "The quick brown fox jumps over the lazy dog.";
+            var logEvent = new LogEvent(-100, LogSeverity.Info, message);
+
+
+            for (int i = 0; i <= 48000; i++)
+            {
+                LogEventRecord record = new LogEventRecord
+                {
+                    Index = i,
+                    Log = logEvent
+                };
+
+                string jsonLine = JsonConvert.SerializeObject(record) + ", ";
+
+                if (!string.IsNullOrEmpty(jsonLine))
+                    WriteToFile(jsonLine, path, i);
+            }
+
+            Console.WriteLine("Done writing to file.");
+            Console.ReadLine();
+        }
+
+        private static void WriteToFile(string content, string path, int index)
+        {
+            Console.WriteLine("Writing object with index: " + index.ToString() + " to file.");
+
+            //TODO: Write/append to actual file.
+
 
         }
     }
