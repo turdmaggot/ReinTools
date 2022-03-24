@@ -12,6 +12,7 @@ namespace MiscTools
         {
             Console.WriteLine("Hello! Welcome to Reiner's tools! Please select a function:");
             Console.WriteLine("Enter 1  - Generate log with json file.");
+            Console.WriteLine("Enter 2  - Read from log file and generate formatted log file.");
 
             string choice = Console.ReadLine();
 
@@ -23,6 +24,9 @@ namespace MiscTools
                     {
                         case 1:
                             GenerateLogFile();
+                            break;
+                        case 2:
+                            ReadAndGenerate();
                             break;
                         default:
                             InvalidChoice();
@@ -42,28 +46,35 @@ namespace MiscTools
             Console.ReadLine();
         }
 
-        private static void GenerateLogFile()
+        private static string GetFilePath()
         {
             string path = System.Reflection.Assembly.GetExecutingAssembly().Location;
             var directory = System.IO.Path.GetDirectoryName(path);
             var fullpath = directory + "/log.txt";
 
+            return fullpath;
+        }
+
+        private static void GenerateLogFile()
+        {
             string message = "The quick brown fox jumps over the lazy dog.";
             var logEvent = new LogEvent(-100, LogSeverity.Info, message);
-
 
             for (int i = 0; i <= 48000; i++)
             {
                 LogEventRecord record = new LogEventRecord
                 {
                     Index = i,
+                    TimeStamp = DateTime.Now,
                     Log = logEvent
                 };
 
                 string jsonLine = JsonConvert.SerializeObject(record) + ", ";
 
+                string fullPath = GetFilePath();
+
                 if (!string.IsNullOrEmpty(jsonLine))
-                    WriteToFile(jsonLine, fullpath, i);
+                    WriteToFile(jsonLine, fullPath, i);
             }
 
             Console.WriteLine("Done writing to file.");
@@ -85,6 +96,22 @@ namespace MiscTools
                     binaryWriter.Flush();
                 }
             }
+        }
+
+        private static void ReadAndGenerate()
+        {
+            string fullPath = GetFilePath();
+
+            if (File.Exists(fullPath))
+            {
+                //TODO: Logic for reading log file 
+
+                Console.WriteLine("Formatted log file generated.");
+            }
+            else
+                Console.WriteLine("Log file not found. Please generate one using option 1.");
+            
+            Console.ReadLine();
         }
     }
 }
