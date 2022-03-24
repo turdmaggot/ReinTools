@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using MiscTools.Objects;
@@ -46,11 +47,11 @@ namespace MiscTools
             Console.ReadLine();
         }
 
-        private static string GetFilePath()
+        private static string GetFilePath(string fileToOpen)
         {
             string path = System.Reflection.Assembly.GetExecutingAssembly().Location;
-            var directory = System.IO.Path.GetDirectoryName(path);
-            var fullpath = directory + "/log.txt";
+            var directory = Path.GetDirectoryName(path);
+            var fullpath = directory + "/" + fileToOpen;
 
             return fullpath;
         }
@@ -71,7 +72,7 @@ namespace MiscTools
 
                 string jsonLine = JsonConvert.SerializeObject(record) + ", ";
 
-                string fullPath = GetFilePath();
+                string fullPath = GetFilePath("log.txt");
 
                 if (!string.IsNullOrEmpty(jsonLine))
                     WriteToFile(jsonLine, fullPath, i);
@@ -100,13 +101,48 @@ namespace MiscTools
 
         private static void ReadAndGenerate()
         {
-            string fullPath = GetFilePath();
+            string fullPath = GetFilePath("log.txt");
 
             if (File.Exists(fullPath))
             {
-                //TODO: Logic for reading log file 
+                string result;
 
-                Console.WriteLine("Formatted log file generated.");
+                using (var fileStream = File.OpenRead(fullPath))
+                {
+                    using (var streamReader = new StreamReader(fileStream))
+                    {
+                        result = streamReader.ReadToEnd();
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(result))
+                {
+                    result = "[" + result + "]";
+
+                    DateTime deserializeStart = DateTime.Now;
+                    Console.WriteLine("Log file started deserializing at " + deserializeStart.ToString());
+                    List<LogEventRecord> logs = JsonConvert.DeserializeObject<List<LogEventRecord>>(result);
+
+                    if (logs != null)
+                    {
+
+                        DateTime deserializeEnd = DateTime.Now;
+                        Console.WriteLine("Log file finished deserializing at " + deserializeEnd.ToString());
+
+                        TimeSpan span = deserializeEnd - deserializeStart;
+
+                        Console.WriteLine("Deserialization took " + span.TotalMilliseconds + "ms to complete for " + logs.Count.ToString() + " log items.");
+
+                        //TODO: Write formatted log file
+
+                        Console.WriteLine("Formatted log file generated.");
+
+                    }
+                    else
+                        Console.WriteLine("Log file is invalid.");
+                }
+                else
+                    Console.WriteLine("Log file is empty.");
             }
             else
                 Console.WriteLine("Log file not found. Please generate one using option 1.");
