@@ -56,9 +56,10 @@ namespace MiscTools
             return fullpath;
         }
 
+        private const string message = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+
         private static void GenerateLogFile()
         {
-            string message = "The quick brown fox jumps over the lazy dog.";
             var logEvent = new LogEvent(-100, LogSeverity.Info, message);
 
             for (int i = 0; i <= 48000; i++)
@@ -82,9 +83,10 @@ namespace MiscTools
             Console.ReadLine();
         }
 
-        private static void WriteToFile(string content, string path, int index)
+        private static void WriteToFile(string content, string path, int index, bool showOnConsole = true)
         {
-            Console.WriteLine("Writing object with index: " + index.ToString() + " to file.");
+            if (showOnConsole)
+                Console.WriteLine("Writing object with index: " + index.ToString() + " to file.");
 
             if (index == 0 && File.Exists(path))
                 File.Delete(path);
@@ -130,13 +132,26 @@ namespace MiscTools
                         Console.WriteLine("Log file finished deserializing at " + deserializeEnd.ToString());
 
                         TimeSpan span = deserializeEnd - deserializeStart;
-
                         Console.WriteLine("Deserialization took " + span.TotalMilliseconds + "ms to complete for " + logs.Count.ToString() + " log items.");
 
-                        //TODO: Write formatted log file
+
+                        DateTime writeFormattedLogStart = DateTime.Now;
+                        Console.WriteLine("Started creating formatted log file at " + writeFormattedLogStart.ToString());
+
+                        string formattedLogPath = GetFilePath("log_formatted.txt");
+                        foreach (LogEventRecord record in logs)
+                        {
+                            string logLine = FormatLog(record);
+                            WriteToFile(logLine, formattedLogPath, record.Index, false);
+                        }
+
+                        DateTime writeFormattedLogEnd = DateTime.Now;
+                        Console.WriteLine("Finished creating formatted log file at " + writeFormattedLogEnd.ToString());
+
+                        TimeSpan span2 = writeFormattedLogEnd - writeFormattedLogStart;
+                        Console.WriteLine("Creating formatted log file took " + span2.TotalMilliseconds + "ms to complete for " + logs.Count.ToString() + " log items.");
 
                         Console.WriteLine("Formatted log file generated.");
-
                     }
                     else
                         Console.WriteLine("Log file is invalid.");
@@ -148,6 +163,14 @@ namespace MiscTools
                 Console.WriteLine("Log file not found. Please generate one using option 1.");
             
             Console.ReadLine();
+        }
+
+        private static string FormatLog(LogEventRecord record)
+        {
+            var stringWriter = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+            stringWriter.GetStringBuilder().Length = 0;
+            stringWriter.Write($"{record.Index} {record.TimeStamp.ToString()} {record.Log.Severity.ToString()}: \r\n{record.Log.Message}\r\n\r\n");
+            return stringWriter.ToString();
         }
     }
 }
