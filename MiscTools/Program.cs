@@ -14,6 +14,7 @@ namespace MiscTools
             Console.WriteLine("Hello! Welcome to Reiner's tools! Please select a function:");
             Console.WriteLine("Enter 1  - Generate log with json file.");
             Console.WriteLine("Enter 2  - Read from log file and generate formatted log file.");
+            Console.WriteLine("Enter 3  - Read from formatted log file.");
 
             string choice = Console.ReadLine();
 
@@ -28,6 +29,9 @@ namespace MiscTools
                             break;
                         case 2:
                             ReadAndGenerate();
+                            break;
+                        case 3:
+                            ReadFormattedLogs();
                             break;
                         default:
                             InvalidChoice();
@@ -134,6 +138,8 @@ namespace MiscTools
                         TimeSpan span = deserializeEnd - deserializeStart;
                         Console.WriteLine("Deserialization took " + span.TotalMilliseconds + "ms to complete for " + logs.Count.ToString() + " log items.");
 
+                        //Reorder logs by desc order.
+                        logs = logs.OrderByDescending(row => row.TimeStamp).ToList();
 
                         DateTime writeFormattedLogStart = DateTime.Now;
                         Console.WriteLine("Started creating formatted log file at " + writeFormattedLogStart.ToString());
@@ -171,6 +177,11 @@ namespace MiscTools
             stringWriter.GetStringBuilder().Length = 0;
             stringWriter.Write($"{record.Index} {record.TimeStamp.ToString()} {record.Log.Severity.ToString()}: \r\n{record.Log.Message}\r\n\r\n");
             return stringWriter.ToString();
+        }
+
+        private static void ReadFormattedLogs()
+        {
+            // TODO: Read existing formatted log file and convert to List<LogEventRecord>.
         }
     }
 }
